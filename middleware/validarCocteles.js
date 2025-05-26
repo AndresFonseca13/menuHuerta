@@ -1,30 +1,31 @@
 const express = require('express');
 
-const validarCoctel = (cocteles) => (req, res, next) =>{
+const validarCoctel = (products) => (req, res, next) =>{
+    
+    const {name, ingredients, price, description} = req.body;
+    
+    const existProduct = products.find(p => p.name.toLowerCase() === name.toLowerCase());
 
-    const {nombre, ingredientes, precio} = req.body;
-
-    const existeCoctel = cocteles.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-    if(existeCoctel){
+    if(existProduct){
         return res.status(400).json({mensaje: "El coctel ya existe"})
     }
     
-    if(!nombre || !ingredientes || !precio){
+    if(!name || !ingredients || !description || !price){
         return res.status(400).json({mensaje: "Faltan datos"})
     }
 
-    if(typeof nombre !== 'string' || typeof precio !== 'number'){
+    if(typeof name !== 'string' || typeof price !== 'number'){
         return res.status(400).json({mensaje: "Datos incorrectos"})
     }
 
-    if(!Array.isArray(ingredientes) || ingredientes.length === 0){
+    if(!Array.isArray(ingredients) || ingredients.length === 0){
         return res.status(400).json({mensaje: "Ingredientes incorrectos"})
     }
 
-    if(precio <= 0){
+    if(price <= 0){
         return res.status(400).json({mensaje: "Precio incorrecto"})
     }
-
+    
     next();
 }
 
