@@ -1,17 +1,35 @@
-const express = require('express');
 const cocktailsService = require('../services/cocktails/index');
 
 
-const getAllCocktails = async (req, res) =>{
-    try{
-        const cocktails = await cocktailsService.getAllCocktailsService();
-        res.status(200).json(cocktails);
-        
-    }catch (error){
-        console.error('Error al obtener los cócteles:', error);
-        res.status(500).json({ mensaje: 'Error al obtener los cócteles', error });
-    }
-}
+const getAllCocktails = async (req, res) => {
+  const pagina = parseInt(req.query.pagina) || 1;
+  const limite = parseInt(req.query.limite) || 10;
+  const offset = (pagina - 1) * limite;
+
+  const categoria = req.query.categoria || null;
+  const tipo = req.query.tipo || null;
+  const orden = req.query.orden || 'name';
+
+  try {
+    const cocktails = await cocktailsService.getAllCocktailsService({
+      categoria,
+      tipo,
+      orden,
+      limite,
+      offset
+    });
+
+    res.status(200).json({
+      pagina,
+      limite,
+      cantidad: cocktails.length,
+      cocteles: cocktails
+    });
+  } catch (error) {
+    console.error('Error al obtener los cócteles:', error);
+    res.status(500).json({ mensaje: 'Error al obtener los cócteles' });
+  }
+};
 
 const getCocktailById = async (req, res) => {
     const { id } = req.params;
@@ -33,14 +51,12 @@ const getCocktailById = async (req, res) => {
 
 const createCocktail = async (req, res) => {
     
-    const { name, price, description, ingredients, images } = req.body;
+    const { name, price, description, ingredients, images, categories } = req.body;
+    const user = req.user.id;
     
-    if (!name || !price || !description || !ingredients || !images) {
-        return res.status(400).json({ mensaje: 'Faltan datos requeridos' });
-    }
-
+    
     try {
-        const cocktail = await cocktailsService.createCocktailService(name, price, description, ingredients, images);
+        const cocktail = await cocktailsService.createCocktailService(name, price, description, ingredients, images, categories, user);
         res.status(201).json({ mensaje: 'Cóctel creado exitosamente', cocktail });
     }catch (error) {
         if (error.status) {
@@ -52,24 +68,13 @@ const createCocktail = async (req, res) => {
     }
 }
 
-const updateCocktail = async (req, res) => {
+const updateCocktail = async ( req, res) => {
   const { id } = req.params;
-  const { name, price, description, ingredients, images } = req.body;
-
-  // Validaciones básicas
-  if (
-    !id || isNaN(id) ||
-    !name || typeof name !== 'string' ||
-    !description || typeof description !== 'string' ||
-    typeof price !== 'number' || isNaN(price) ||
-    !Array.isArray(ingredients) || ingredients.length === 0 ||
-    !Array.isArray(images) || images.length === 0
-  ) {
-    return res.status(400).json({ mensaje: 'Datos inválidos o faltantes para actualizar' });
-  }
-
+  const { name, price, description, ingredients, images, categories } = req.body;
+  const user = req.user.id;
+  
   try {
-    const updatedCocktail = await cocktailsService.updateCocktailService(id, name, price, description, ingredients, images);
+    const updatedCocktail = await cocktailsService.updateCocktailService(id, name, price, description, ingredients, images, categories, user);
     res.status(200).json({ mensaje: 'Cóctel actualizado exitosamente', updatedCocktail });
   } catch (error) {
     console.error('Error al actualizar el cóctel:', error);
@@ -79,10 +84,6 @@ const updateCocktail = async (req, res) => {
 
 const deleteCocktail = async (req, res) => {
     const { id } = req.params;
-
-    if(!id || isNaN(id)){
-        return res.status(400).json({ mensaje: 'ID inválido' });
-    }
     
     try{
         const deletedCocktail = await cocktailsService.deleteCocktailService(id);

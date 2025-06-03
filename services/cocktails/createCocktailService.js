@@ -1,7 +1,7 @@
 const pool = require('../../config/db');
 const { ConflictError } = require('../../errors/ConflictError');
 
-const createCocktailService = async (name, price, description, ingredients, images) => {
+const createCocktailService = async (name, price, description, ingredients, images, categories, userid) => {
     const checkQuery = `SELECT * FROM products WHERE name = $1`;
     const checkResult = await pool.query(checkQuery, [name]);
     if (checkResult.rows.length > 0) {
@@ -9,8 +9,8 @@ const createCocktailService = async (name, price, description, ingredients, imag
     }
     try{
         await pool.query('BEGIN');
-        const insertCocktailQuery = 'INSERT INTO products (name, price, description) VALUES ($1, $2, $3) RETURNING id, name, price, description';
-        const cocktailResult = await pool.query(insertCocktailQuery, [name, price, description]);
+        const insertCocktailQuery = 'INSERT INTO products (name, price, description, created_by) VALUES ($1, $2, $3, $4) RETURNING id, name, price, description';
+        const cocktailResult = await pool.query(insertCocktailQuery, [name, price, description, userid]);
         const cocktailId = cocktailResult.rows[0].id;
 
         const ingredientsIds = [];
@@ -38,6 +38,30 @@ const createCocktailService = async (name, price, description, ingredients, imag
         for (const ingredientId of ingredientsIds) {
             const relacionQuery = 'INSERT INTO products_ingredients (product_id, ingredient_id) VALUES ($1, $2)';
             await pool.query(relacionQuery, [cocktailId, ingredientId]);
+        }
+
+        for (const { name: categoryName, type: categoryType } of categories) {
+          const insertCategoryQuery = `
+              INSERT INTO categories (name, type)
+              VALUES ($1, $2)
+              ON CONFLICT (name, type) DO NOTHING
+              RETURNING id;
+          `;
+          const result = await pool.query(insertCategoryQuery, [categoryName, categoryType]);
+
+          let categoryId;
+          if (result.rows.length > 0) {
+              categoryId = result.rows[0].id;
+          } else {
+              const existingQuery = 'SELECT id FROM categories WHERE name = $1 AND type = $2';
+              const existingResult = await pool.query(existingQuery, [categoryName, categoryType]);
+              categoryId = existingResult.rows[0].id;
+          }
+
+          await pool.query(
+              'INSERT INTO products_categories (product_id, category_id) VALUES ($1, $2)',
+              [cocktailId, categoryId]
+          );
         }
 
         for (const url of images) {
