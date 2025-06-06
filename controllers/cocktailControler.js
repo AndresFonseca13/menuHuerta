@@ -1,4 +1,4 @@
-const cocktailsService = require('../services/cocktails/index');
+const cocktailsService = require('../services/cocktail/index');
 
 
 const getAllCocktails = async (req, res) => {
