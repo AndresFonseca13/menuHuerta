@@ -3,6 +3,7 @@ const getAllCocktailsService = require('./getAllCocktailsService');
 const getCocktailByIdService = require('./getCocktailByIdService');
 const updateCocktailService = require('./updateCocktailService');
 const deleteCocktailService = require('./deleteCocktailService');
+const searchProductsService = require('./searchProductsService');
 
 
 module.exports = {
@@ -10,5 +11,6 @@ module.exports = {
     getAllCocktailsService,
     getCocktailByIdService,
     updateCocktailService,
-    deleteCocktailService
+    deleteCocktailService,
+    searchProductsService
 };

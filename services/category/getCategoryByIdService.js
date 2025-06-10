@@ -1,21 +1,24 @@
-const pool = require('../../config/db');
+const pool = require("../../config/db");
 
 const getCategoryByIdService = async (id) => {
-    // Verificar si la categoría existe
-    const checkQuery = 'SELECT * FROM categories WHERE id = $1';
-    const checkResult = await pool.query(checkQuery, [id]);
-    if (checkResult.rows.length === 0) {
-        throw new Error('Categoría no encontrada');
-    }
+	try {
+		const query = `
+            SELECT c.id, c.name, c.type
+            FROM categories c
+            WHERE c.id = $1;
+        `;
 
-    const query = `
-        SELECT c.id, c.name, c.type
-        FROM categories c
-        WHERE c.id = $1;
-    `;
+		const result = await pool.query(query, [id]);
 
-    const result = await pool.query(query, [id]);
-    return result.rows[0];
-}
+		if (result.rows.length === 0) {
+			return null;
+		}
+
+		return result.rows[0];
+	} catch (error) {
+		console.error("Error en getCategoryByIdService:", error);
+		throw new Error("Error al obtener la categoría");
+	}
+};
 
 module.exports = getCategoryByIdService;
