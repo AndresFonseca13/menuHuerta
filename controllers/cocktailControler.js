@@ -33,8 +33,15 @@ const getAllCocktails = async (req, res) => {
 const getCocktailById = async (req, res) => {
 	const { id } = req.params;
 
-	if (!id || isNaN(id)) {
-		return res.status(400).json({ mensaje: "ID inválido" });
+	// Validación del formato UUID
+	const uuidRegex =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+	if (!id || !uuidRegex.test(id)) {
+		return res.status(400).json({
+			mensaje: "ID inválido",
+			error: "El ID debe ser un UUID válido",
+			idRecibido: id,
+		});
 	}
 	try {
 		const cocktail = await cocktailsService.getCocktailByIdService(id);

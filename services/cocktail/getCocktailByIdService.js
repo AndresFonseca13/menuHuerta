@@ -4,7 +4,8 @@ const getCocktailByIdService = async ( id ) => {
     const query = `
         SELECT 
             p.id AS product_id, 
-            p.name AS product_name, 
+            p.name AS product_name,
+            p.description,
             p.price, 
             array_agg(DISTINCT i.name) AS ingredients,
             array_agg(DISTINCT img.url) AS images,

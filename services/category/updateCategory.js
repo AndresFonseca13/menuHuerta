@@ -1,5 +1,4 @@
 const pool = require('../../config/db');
-const { ConflictError } = require('../../errors/ConflictError');
 
 const updateCategory = async(id, name, type) => {
     const checkQuery = 'SELECT * FROM categories WHERE id = $1';

@@ -5,11 +5,13 @@ const port = 3000;
 const coctelesRoutes = require('./routes/cocktails.routes');
 const categoriesRoutes = require('./routes/categories.routes');
 const authRoutes = require('./routes/auth.routes');
+const ingredientRoutes = require('./routes/ingredients.routes');
 
 app.use(express.json());
 app.use('/cocktails', coctelesRoutes);
 app.use('/categories', categoriesRoutes);
 app.use('/auth', authRoutes);
+app.use('/ingredient', ingredientRoutes);
 app.get("/bienvenido", (req, res) =>{
     mensaje = "Bienvenido a Huerta"
     res.json({mensaje})
